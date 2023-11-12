@@ -7,3 +7,5 @@ import Logic
 
 main :: IO ()
 main = testBoard1
+
+

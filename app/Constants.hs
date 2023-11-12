@@ -2,23 +2,41 @@ module Constants where
 
 import CodeWorld
 
-cellPicture :: Picture
-cellPicture = solidRectangle cellShape cellShape 
+zoomFactor :: Double
+zoomFactor = 0.8
+
+panVector :: (Double, Double)
+panVector = (-5, -5)
+
+cellOpenPicture :: Picture
+cellOpenPicture = solidRectangle cellShape cellShape
+
+cellClosedPicture :: Picture
+cellClosedPicture = cellClosedSubPicture <> triangleLightPicture <> triangleDarkPicture
+
+cellClosedSubPicture :: Picture
+cellClosedSubPicture = solidRectangle cellClosedShape cellClosedShape
+
+triangleLightPicture :: Picture
+triangleLightPicture = colored (light grey) (solidPolygon [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5)])
+
+triangleDarkPicture :: Picture
+triangleDarkPicture = colored (dark grey) (solidPolygon [(-0.5, -0.5), (0.5, -0.5), (0.5, 0.5)])
 
 cellShape :: Double
 cellShape = 1
 
-openColor1 :: Color
-openColor1 = yellow -- RGB 192 192 192
+cellClosedShape :: Double
+cellClosedShape = 0.8
 
-openColor2 :: Color
-openColor2 = light gray
+cellOpenColor :: Color
+cellOpenColor = RGB 192 192 192
 
-closedColor1 :: Color
-closedColor1 = dark gray
+cellClosedColor :: Color
+cellClosedColor = dark gray -- RGB 128 128 128
 
-closedColor2 :: Color
-closedColor2 = dark green
+cellMineColor :: Color
+cellMineColor = red
 
 numberColor :: Int -> Color
 numberColor 1 = blue
