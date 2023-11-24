@@ -5,35 +5,20 @@ import CodeWorld
 zoomFactor :: Double
 zoomFactor = 0.8
 
-panVector :: (Double, Double)
-panVector = (-5, -5)
-
-cellOpenPicture :: Picture
-cellOpenPicture = solidRectangle cellShape cellShape
-
-cellClosedPicture :: Picture
-cellClosedPicture = cellClosedSubPicture <> triangleLightPicture <> triangleDarkPicture
-
-cellClosedSubPicture :: Picture
-cellClosedSubPicture = solidRectangle cellClosedShape cellClosedShape
-
-triangleLightPicture :: Picture
-triangleLightPicture = colored (light grey) (solidPolygon [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5)])
-
-triangleDarkPicture :: Picture
-triangleDarkPicture = colored (dark grey) (solidPolygon [(-0.5, -0.5), (0.5, -0.5), (0.5, 0.5)])
-
 cellShape :: Double
 cellShape = 1
 
 cellClosedShape :: Double
 cellClosedShape = 0.8
 
-cellOpenColor :: Color
-cellOpenColor = RGB 192 192 192
+cellColor :: Color
+cellColor = gray
 
-cellClosedColor :: Color
-cellClosedColor = dark gray -- RGB 128 128 128
+cellLightColor :: Color
+cellLightColor = white
+
+cellDarkColor :: Color
+cellDarkColor = black
 
 cellMineColor :: Color
 cellMineColor = red

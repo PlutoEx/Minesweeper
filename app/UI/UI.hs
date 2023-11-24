@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
 module UI.UI where
 
+import Data.Text (pack)
 import Types
 import CodeWorld
 import UI.Cell
@@ -11,54 +11,27 @@ import Constants
 drawBoard :: Board -> Picture
 drawBoard = foldr ((<>) . drawCell) blank
 
+drawBorder :: Settings -> Picture
+drawBorder (_, w, h, _) = rectangle (fromIntegral w) (fromIntegral h)
+
 drawWorld :: World -> Picture
-drawWorld ((board, time), _, state) = applyCentering (drawBoard board)
+drawWorld ((board, time), settings, state) = applyCentering (drawBoard board) settings <>
+    drawTime time settings <>
+    drawBorder settings <>
+    drawMines board settings
 
--- drawTime :: Double -> Picture
--- drawTime = 
+drawTime :: Double -> Settings -> Picture
+drawTime time (_, w, h, _) = translated (fromIntegral (-w) / 2 + 1) (fromIntegral h / 2 + 1.5)
+    (rectangle 2 1 <>
+    scaled 0.8 0.8 (lettering (pack (show time))))
 
-applyCentering :: Picture -> Picture
-applyCentering = uncurry translated panVector . scaled zoomFactor zoomFactor
+drawMines :: Board -> Settings -> Picture
+drawMines board (_, w, h, mines) = translated (fromIntegral w / 2 - 1) (fromIntegral h / 2 + 1.5)
+    (rectangle 2 1 <>
+    scaled 0.8 0.8 (lettering (pack (show (mines - countLeftMines board)))))
+
+applyCentering :: Picture -> Settings -> Picture
+applyCentering pic (_, w, h, _) = translated (-fromIntegral (w+1) / 2) (-fromIntegral (h+1) / 2) pic
 
 applyZoom :: Picture -> Picture
 applyZoom = scaled zoomFactor zoomFactor
-
-initialWorld :: IO World
-initialWorld = do
-    let w = 10
-    let h = 10
-    let mines = 15
-    let startPos = (1, 1)
-    board <- generateBoard w h mines startPos
-    return ((board, 0), (False, w, h, mines), NotStarted)
-
-eventHandleBoard :: Event -> Board -> Bool -> (Board, Bool)
-eventHandleBoard event board ctrl = do
-    case event of
-        PointerRelease (x, y)   -> (updateBoard board x y ctrl, ctrl)
-        KeyPress "Ctrl"         -> (board, True)
-        KeyRelease "Ctrl"       -> (board, False)
-        _                       -> (board, ctrl)
-
--- Create eventHandle for Pause
-
-eventHandle :: Event -> World -> World
-eventHandle event ((board, time), (ctrl, w, h, mineCount), gameState) =
-    case gameState of
-        InGame -> ((newBoard, time), (newCtrl, w, h, mineCount), gameState)
-        NotStarted -> ((newBoard, time), (newCtrl, w, h, mineCount), gameState)
-        -- TODO Others conditions
-    where
-        (newBoard, newCtrl) = eventHandleBoard event board ctrl
-testBoard1 = do
-    world <- initialWorld
-    activityOf world eventHandle drawWorld
-
-
-sampleBoard = [((0, 0), 1, Open), ((0, 1), 1, Open), ((1, 0), 3, Open), ((1, 1), 4, Closed), ((0, 2), 9, Closed), ((1, 2), 0, Flagged)]
-
-
-drawBoard1 = drawingOf (drawBoard sampleBoard)
-drawBoard2 = do
-    board <- generateBoard 10 10 10 (1, 1)
-    drawingOf (drawBoard board)

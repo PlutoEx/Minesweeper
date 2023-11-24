@@ -5,11 +5,20 @@ import CodeWorld
 import Types
 import Constants
 
-openCellPicture :: Picture
-openCellPicture = colored cellOpenColor cellOpenPicture
+cellOpenPicture :: Picture
+cellOpenPicture = colored cellColor (solidRectangle cellShape cellShape)    
 
-closedCellPicture :: Picture
-closedCellPicture = colored cellClosedColor cellClosedPicture
+cellClosedPicture :: Picture
+cellClosedPicture = cellClosedSubPicture <> triangleLightPicture <> triangleDarkPicture
+
+cellClosedSubPicture :: Picture
+cellClosedSubPicture = colored cellColor (solidRectangle cellClosedShape cellClosedShape)
+
+triangleLightPicture :: Picture
+triangleLightPicture = colored cellLightColor (solidPolygon [(-0.5, -0.5), (-0.5, 0.5), (0.5, 0.5)])
+
+triangleDarkPicture :: Picture
+triangleDarkPicture = colored cellDarkColor (solidPolygon [(-0.5, -0.5), (0.5, -0.5), (0.5, 0.5)])
 
 coloredNumMines :: Int -> Picture
 coloredNumMines 0 = blank
@@ -21,11 +30,11 @@ drawCell :: Cell -> Picture
 drawCell ((x, y), mines, Open) =
     translated (fromIntegral x) (fromIntegral y)
     (coloredNumMines mines <>
-    openCellPicture)
+    cellOpenPicture)
 drawCell ((x, y), mines, Closed) =
     translated (fromIntegral x) (fromIntegral y)
-    closedCellPicture
+    cellClosedPicture
 drawCell ((x, y), _, Flagged) =
     translated (fromIntegral x) (fromIntegral y)
     (scaled 0.5 0.5 (lettering (pack "🚩")) <>
-    closedCellPicture)
+    cellClosedPicture)

@@ -1,22 +1,94 @@
 module Logic where
 
+import Data.List (find)
 import CodeWorld
 import Types
 import System.Random
 
-updateBoard :: Board -> Double -> Double -> Bool -> Board
-updateBoard board x y = updateCell (round x) (round y) board
+updateBoard :: Board -> (Double, Double) -> Settings -> Board
+updateBoard board coords (ctrl, w, h, _) =
+    let pos = getPosition coords (w, h)
+    in if isEmptyCell pos board && not ctrl
+        then openNearEmptyCells pos board
+        else case getCell pos board of
+            Just (_, flags, Open) | flags == getNearFlags pos board -> openExceptMinesCells pos board
+            _                                                       -> updateCell pos board ctrl
 
-updateCell :: Int -> Int -> Board -> Bool -> Board
-updateCell _ _ [] _ = []
-updateCell x y ((coords, mines, state) : rest) ctrl
-    | coords == (x, y) && ctrl && state == Closed   = (coords, mines, Flagged) : updateRest
-    | coords == (x, y) && ctrl && state == Flagged  = (coords, mines, Closed) : updateRest
-    | coords == (x, y) && not ctrl && state == Flagged  = (coords, mines, Closed) : updateRest
-    | coords == (x, y) && not ctrl && state /= Open = (coords, mines, Open) : updateRest
+openExceptMinesCells :: Position -> Board -> Board
+openExceptMinesCells (x, y) board = foldr openExceptMinesCellsHelper updatedBoard directions
+    where
+        updatedBoard = updateCell (x, y) board False
+        directions = [(x + dx, y + dy) | dx <- [-1, 0, 1], dy <- [-1, 0, 1], (dx, dy) /= (0, 0)]
+
+openExceptMinesCellsHelper :: Position -> Board -> Board
+openExceptMinesCellsHelper pos board 
+    | isEmptyCell pos board = openNearEmptyCells pos board
+    | isClosedCell pos board = updateCell pos board False
+    | otherwise = board
+
+-- WTF INT AND INTEGER NOT SAME BRUH
+getPosition :: (Double, Double) -> (Int, Int) -> Position
+getPosition (x, y) (w, h) = (round (x + fromIntegral (w + 1) / 2), round (y + fromIntegral (h + 1) / 2))
+
+getNearFlags :: Position -> Board -> Int
+getNearFlags (x, y) board =
+    length $ filter (\(cx, cy) -> isFlaggedCell (cx, cy) board) neighbors
+    where
+        neighbors = [(x + dx, y + dy) | dx <- [-1, 0, 1], dy <- [-1, 0, 1], (dx, dy) /= (0, 0)]
+
+updateCell :: Position -> Board -> Bool -> Board
+updateCell _ [] _ = []
+updateCell (x, y) ((coords, mines, state) : rest) ctrl
+    | coords == (x, y) && ctrl && state == Closed = (coords, mines, Flagged) : updateRest
+    | coords == (x, y) && ctrl && state == Flagged = (coords, mines, Closed) : updateRest
+    | coords == (x, y) && not ctrl && state == Flagged  = (coords, mines, Open) : updateRest
+    | coords == (x, y) && not ctrl && state == Closed = (coords, mines, Open) : updateRest
     | otherwise                                     = (coords, mines, state) : updateRest
     where
-        updateRest = updateCell x y rest ctrl
+        updateRest = updateCell (x, y) rest ctrl
+
+-- 3 Days to find fking inf loop error
+openNearEmptyCells :: Position -> Board -> Board
+openNearEmptyCells (x, y) board
+    | isEmptyCell (x, y) updatedBoard = foldr openNearEmptyCellsHelper updatedBoard directions
+    | otherwise = updatedBoard
+    where
+        updatedBoard = updateCell (x, y) board False
+        directions = [(x + dx, y + dy) | dx <- [-1, 0, 1], dy <- [-1, 0, 1], (dx, dy) /= (0, 0)]
+
+openNearEmptyCellsHelper :: Position -> Board -> Board
+openNearEmptyCellsHelper (x, y) board
+    | isClosedCell (x, y) board = openNearEmptyCells (x, y) updatedBoard
+    | otherwise = updatedBoard
+    where
+        updatedBoard = updateCell (x, y) board False
+
+getCell :: Position -> Board -> Maybe Cell
+getCell pos = find (\ (coords, _, _) -> coords == pos)
+
+isEmptyCell :: Position -> Board -> Bool
+isEmptyCell pos board =
+    case getCell pos board of
+        Just (_, 0, _) -> True
+        _              -> False
+
+isClosedCell :: Position -> Board -> Bool
+isClosedCell pos board =
+    case getCell pos board of
+        Just (_, _, Closed) -> True
+        _                   -> False
+
+isFlaggedCell :: Position -> Board -> Bool
+isFlaggedCell pos board =
+    case getCell pos board of
+        Just (_, _, Flagged) -> True
+        _                    -> False
+
+isOpenCell :: Position -> Board -> Bool
+isOpenCell pos board =
+    case getCell pos board of
+        Just (_, _, Open) -> True
+        _                 -> False
 
 getRandomNumber :: Int -> Int -> IO Int
 getRandomNumber a b = randomRIO (a, b)
@@ -33,8 +105,8 @@ generateMines width height mineCount mines = do
 
 
 generateEmptyBoard :: Int -> Int -> Board
---generateEmptyBoard w h = [(pos, 0, Closed) | x <- [1..w], y <- [1..h], let pos = (x, y)]
-generateEmptyBoard w h = [(pos, 0, Open) | x <- [1..w], y <- [1..h], let pos = (x, y)]     -- for debug
+generateEmptyBoard w h = [(pos, 0, Closed) | x <- [1..w], y <- [1..h], let pos = (x, y)]
+-- generateEmptyBoard w h = [(pos, 0, Open) | x <- [1..w], y <- [1..h], let pos = (x, y)]     -- for debug
 
 generateBoard :: Int -> Int -> Int -> Position -> IO Board
 generateBoard width height minesNumber start = do
@@ -71,6 +143,11 @@ countNearMines (x, y) ((x1, y1) : mines) =
     if abs (x - x1) <= 1 && abs (y - y1) <= 1
         then 1 + countNearMines (x, y) mines
         else countNearMines (x, y) mines
+
+countLeftMines :: Board -> Int
+countLeftMines [] = 0
+countLeftMines ((_, _, Flagged) : rest) = 1 + countLeftMines rest
+countLeftMines (_ : rest) = countLeftMines rest 
 
 -- Just for debug
 -- printer :: [Position] -> IO ()
