@@ -3,7 +3,7 @@ name:               Project
 version:            0.1.0.0
 
 -- A short (one-line) description of the package.
--- synopsis:
+-- synopsis: 
 
 -- A longer description of the package.
 -- description:
@@ -23,15 +23,15 @@ extra-source-files: CHANGELOG.md
 
 executable Project
     main-is:          Main.hs
-    ghc-options:      -threaded 
+    ghc-options:      -threaded
     -- Modules included in this executable, other than Main.
-    other-modules:    Types, UI.UI, Constants, UI.Cell, Logic
+    other-modules:    Types, UI.UI, Events, Constants, UI.Cell, UI.Menu, Logic.Logic, Logic.Generator, Logic.Board, Logic.Cell
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
-    build-depends:    base ^>=4.16.4.0,
-                      codeworld-api >= 0.8.1,
+    build-depends:    base >= 4.16,
                       text >= 1.2.5,
-                      random <= 1.2.1.1
+                      codeworld-api >= 0.8.1,
+                      random <= 1.2.1.1,
     hs-source-dirs:   app
     default-language: Haskell2010

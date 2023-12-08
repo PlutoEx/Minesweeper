@@ -33,3 +33,12 @@ numberColor 6 = RGB 0 255 255 -- cyan
 numberColor 7 = black
 numberColor 8 = grey
 numberColor _ = black
+
+smallBoard :: Int
+smallBoard = 5
+
+mediumBoard :: Int
+mediumBoard = 10
+
+largeBoard :: Int
+largeBoard = 20

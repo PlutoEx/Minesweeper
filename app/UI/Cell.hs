@@ -22,16 +22,19 @@ triangleDarkPicture = colored cellDarkColor (solidPolygon [(-0.5, -0.5), (0.5, -
 
 coloredNumMines :: Int -> Picture
 coloredNumMines 0 = blank
-coloredNumMines 9 = colored cellMineColor cellOpenPicture
 coloredNumMines mines = colored (numberColor mines) (lettering (pack (show mines)))
 
 -- TODO: Add font 
 drawCell :: Cell -> Picture
-drawCell ((x, y), mines, Open) =
+drawCell ((x, y), Mine, Open) =
+    translated (fromIntegral x) (fromIntegral y)
+    (colored cellMineColor cellOpenPicture <>
+    cellOpenPicture)
+drawCell ((x, y), NotMine mines, Open) =
     translated (fromIntegral x) (fromIntegral y)
     (coloredNumMines mines <>
     cellOpenPicture)
-drawCell ((x, y), mines, Closed) =
+drawCell ((x, y), _, Closed) =
     translated (fromIntegral x) (fromIntegral y)
     cellClosedPicture
 drawCell ((x, y), _, Flagged) =
