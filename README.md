@@ -10,7 +10,6 @@ Members: Arlan Kuralbayev Bs20-SD-01 a.kuralbayev@innopolis.university
 
 Simple implementation of Minesweeper game in haskell using CodeWorld package to display UI. And using **cabal** to build the project.
 
-
 To build
 
 ```shell
@@ -24,3 +23,10 @@ cabal run
 ```
 
 Then click on link: [http://127.0.0.1:3000/](http://127.0.0.1:3000/)
+
+
+## Demo
+
+![1702210713985](image/README/1702210713985.png)
+
+![1702210786599](image/README/1702210786599.png)
